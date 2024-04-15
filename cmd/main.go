@@ -96,12 +96,12 @@ func run(log *slog.Logger, cfg *config.Config, shutdown chan os.Signal) error { 
 		return nil
 	}
 
-	remoteLoader, err := persisted_operations.RemoteLoaderFromConfig(cfg.PersistedOperations)
+	remoteLoader, err := persisted_operations.RemoteLoaderFromConfig(cfg.PersistedOperations, log)
 	if err != nil && !errors.Is(err, persisted_operations.ErrNoRemoteLoaderSpecified) {
 		log.Warn("Error initializing remote loader", "err", err)
 	}
 
-	po, err := persisted_operations.NewPersistedOperations(log, cfg.PersistedOperations, persisted_operations.NewLocalDirLoader(cfg.PersistedOperations), remoteLoader)
+	po, err := persisted_operations.NewPersistedOperations(log, cfg.PersistedOperations, persisted_operations.NewLocalDirLoader(cfg.PersistedOperations, log), remoteLoader)
 	if err != nil {
 		log.Error("Error initializing Persisted Operations", "err", err)
 		return nil

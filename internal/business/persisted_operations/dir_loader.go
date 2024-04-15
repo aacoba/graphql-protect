@@ -3,7 +3,7 @@ package persisted_operations // nolint:revive
 import (
 	"context"
 	"encoding/json"
-	"fmt"
+	"log/slog"
 	"os"
 	"path/filepath"
 )
@@ -15,11 +15,13 @@ import (
 // If it fails to load a file it moves on to the next file in the directory
 type DirLoader struct {
 	path string
+	log  *slog.Logger
 }
 
-func NewLocalDirLoader(cfg Config) *DirLoader {
+func NewLocalDirLoader(cfg Config, log *slog.Logger) *DirLoader {
 	return &DirLoader{
 		path: cfg.Store,
+		log:  log,
 	}
 }
 
@@ -43,13 +45,13 @@ func (d *DirLoader) Load(_ context.Context) (map[string]string, error) {
 			filePath := filepath.Join(d.path, file.Name())
 			contents, err := os.ReadFile(filePath)
 			if err != nil {
+				d.log.Warn("Error reading file", "err", err)
 				continue
 			}
 
 			err = json.Unmarshal(contents, &result)
-
 			if err != nil {
-				fmt.Println(err)
+				d.log.Warn("error unmarshalling operation file", "filepath", filePath, "err", err)
 				continue
 			}
 		}
